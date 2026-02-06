@@ -1,7 +1,8 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { motion } from "framer-motion";
 import { BookOpen, CalendarDays, Settings, LayoutGrid } from "lucide-react";
 import { loadSchedule, saveSchedule, WeekSchedule } from "@/lib/schedule";
+import { seedIfEmpty } from "@/lib/seed";
 import { TomorrowView } from "@/components/TomorrowView";
 import { ScheduleSetup } from "@/components/ScheduleSetup";
 import { WeekOverview } from "@/components/WeekOverview";
@@ -15,7 +16,10 @@ const tabs: { id: Tab; label: string; icon: typeof CalendarDays }[] = [
 ];
 
 export default function Index() {
-  const [schedule, setSchedule] = useState<WeekSchedule>(loadSchedule);
+  const [schedule, setSchedule] = useState<WeekSchedule>(() => {
+    seedIfEmpty();
+    return loadSchedule();
+  });
   const [activeTab, setActiveTab] = useState<Tab>("tomorrow");
 
   const handleSave = useCallback((updated: WeekSchedule) => {
