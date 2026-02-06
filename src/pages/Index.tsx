@@ -6,11 +6,12 @@ import { seedIfEmpty } from "@/lib/seed";
 import { TomorrowView } from "@/components/TomorrowView";
 import { ScheduleSetup } from "@/components/ScheduleSetup";
 import { WeekOverview } from "@/components/WeekOverview";
+import { InstallBanner } from "@/components/InstallBanner";
 
 type Tab = "tomorrow" | "week" | "setup";
 
 const tabs: { id: Tab; label: string; icon: typeof CalendarDays }[] = [
-  { id: "tomorrow", label: "Tomorrow", icon: CalendarDays },
+  { id: "tomorrow", label: "Today", icon: CalendarDays },
   { id: "week", label: "Week", icon: LayoutGrid },
   { id: "setup", label: "Setup", icon: Settings },
 ];
@@ -40,12 +41,13 @@ export default function Index() {
         </div>
       </header>
 
-      {/* Content */}
-      <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-6">
+      <main className="mx-auto w-full max-w-2xl flex-1 px-3 sm:px-4 py-4 sm:py-6 pb-2">
         {activeTab === "tomorrow" && <TomorrowView schedule={schedule} />}
         {activeTab === "week" && <WeekOverview schedule={schedule} />}
         {activeTab === "setup" && <ScheduleSetup schedule={schedule} onSave={handleSave} />}
       </main>
+
+      <InstallBanner />
 
       {/* Bottom nav */}
       <nav className="sticky bottom-0 border-t bg-card/90 backdrop-blur-sm">

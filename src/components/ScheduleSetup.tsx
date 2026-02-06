@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Plus, Trash2, Save, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { WeekSchedule, ClassEntry, generateId, formatTime } from "@/lib/schedule";
+import { WeekSchedule, ClassEntry, generateId } from "@/lib/schedule";
 import { toast } from "sonner";
 
 interface ScheduleSetupProps {
@@ -47,7 +47,6 @@ export function ScheduleSetup({ schedule, onSave }: ScheduleSetupProps) {
   }
 
   function handleSave() {
-    // Filter out empty subjects
     const cleaned = draft.map((day) => ({
       ...day,
       classes: day.classes.filter((c) => c.subject.trim() !== ""),
@@ -59,8 +58,8 @@ export function ScheduleSetup({ schedule, onSave }: ScheduleSetupProps) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="font-display text-2xl font-bold">Setup Schedule</h2>
-        <Button onClick={handleSave} className="gap-2">
+        <h2 className="font-display text-xl sm:text-2xl font-bold">Setup Schedule</h2>
+        <Button onClick={handleSave} size="sm" className="gap-2">
           <Save className="h-4 w-4" />
           Save
         </Button>
@@ -71,9 +70,9 @@ export function ScheduleSetup({ schedule, onSave }: ScheduleSetupProps) {
           <div key={day.day} className="rounded-xl border bg-card overflow-hidden">
             <button
               onClick={() => toggleDay(day.day)}
-              className="flex w-full items-center justify-between px-4 py-3 text-left hover:bg-secondary/50 transition-colors"
+              className="flex w-full items-center justify-between px-3 sm:px-4 py-3 text-left hover:bg-secondary/50 transition-colors"
             >
-              <span className="font-display font-semibold">{day.day}</span>
+              <span className="font-display font-semibold text-sm sm:text-base">{day.day}</span>
               <div className="flex items-center gap-2">
                 <span className="text-xs text-muted-foreground">
                   {day.classes.length} class{day.classes.length !== 1 ? "es" : ""}
@@ -95,58 +94,64 @@ export function ScheduleSetup({ schedule, onSave }: ScheduleSetupProps) {
                   transition={{ duration: 0.2 }}
                   className="overflow-hidden"
                 >
-                  <div className="space-y-3 border-t px-4 py-4">
+                  <div className="space-y-3 border-t px-3 sm:px-4 py-4">
                     {day.classes.map((cls, classIndex) => (
                       <motion.div
                         key={cls.id}
                         initial={{ opacity: 0, x: -10 }}
                         animate={{ opacity: 1, x: 0 }}
-                        className="flex flex-wrap items-end gap-2 rounded-lg bg-secondary/50 p-3"
+                        className="rounded-lg bg-secondary/50 p-3 space-y-2"
                       >
-                        <div className="flex-1 min-w-[140px]">
-                          <label className="mb-1 block text-xs font-medium text-muted-foreground">Subject</label>
-                          <Input
-                            value={cls.subject}
-                            onChange={(e) => updateClass(dayIndex, classIndex, "subject", e.target.value)}
-                            placeholder="e.g. Math 101"
-                          />
+                        {/* Subject + Delete row */}
+                        <div className="flex items-end gap-2">
+                          <div className="flex-1">
+                            <label className="mb-1 block text-xs font-medium text-muted-foreground">Subject</label>
+                            <Input
+                              value={cls.subject}
+                              onChange={(e) => updateClass(dayIndex, classIndex, "subject", e.target.value)}
+                              placeholder="e.g. Math 101"
+                            />
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => removeClass(dayIndex, classIndex)}
+                            className="text-destructive hover:text-destructive shrink-0"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                         </div>
-                        <div className="w-[110px]">
-                          <label className="mb-1 block text-xs font-medium text-muted-foreground">Start</label>
-                          <Input
-                            type="time"
-                            value={cls.startTime}
-                            onChange={(e) => updateClass(dayIndex, classIndex, "startTime", e.target.value)}
-                          />
+                        {/* Time + Location row */}
+                        <div className="grid grid-cols-3 gap-2">
+                          <div>
+                            <label className="mb-1 block text-xs font-medium text-muted-foreground">Start</label>
+                            <Input
+                              type="time"
+                              value={cls.startTime}
+                              onChange={(e) => updateClass(dayIndex, classIndex, "startTime", e.target.value)}
+                            />
+                          </div>
+                          <div>
+                            <label className="mb-1 block text-xs font-medium text-muted-foreground">End</label>
+                            <Input
+                              type="time"
+                              value={cls.endTime}
+                              onChange={(e) => updateClass(dayIndex, classIndex, "endTime", e.target.value)}
+                            />
+                          </div>
+                          <div>
+                            <label className="mb-1 block text-xs font-medium text-muted-foreground">Location</label>
+                            <Input
+                              value={cls.location ?? ""}
+                              onChange={(e) => updateClass(dayIndex, classIndex, "location", e.target.value)}
+                              placeholder="Room"
+                            />
+                          </div>
                         </div>
-                        <div className="w-[110px]">
-                          <label className="mb-1 block text-xs font-medium text-muted-foreground">End</label>
-                          <Input
-                            type="time"
-                            value={cls.endTime}
-                            onChange={(e) => updateClass(dayIndex, classIndex, "endTime", e.target.value)}
-                          />
-                        </div>
-                        <div className="flex-1 min-w-[120px]">
-                          <label className="mb-1 block text-xs font-medium text-muted-foreground">Location</label>
-                          <Input
-                            value={cls.location ?? ""}
-                            onChange={(e) => updateClass(dayIndex, classIndex, "location", e.target.value)}
-                            placeholder="Room 204"
-                          />
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => removeClass(dayIndex, classIndex)}
-                          className="text-destructive hover:text-destructive shrink-0"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
                       </motion.div>
                     ))}
 
-                    <Button variant="outline" size="sm" className="gap-1.5" onClick={() => addClass(dayIndex)}>
+                    <Button variant="outline" size="sm" className="gap-1.5 w-full" onClick={() => addClass(dayIndex)}>
                       <Plus className="h-3.5 w-3.5" />
                       Add Class
                     </Button>
