@@ -1,5 +1,5 @@
-import { useState, useCallback, useEffect } from "react";
-import { motion } from "framer-motion";
+import { useState, useCallback, useRef } from "react";
+import { motion, AnimatePresence, PanInfo } from "framer-motion";
 import { BookOpen, CalendarDays, Settings, LayoutGrid } from "lucide-react";
 import { loadSchedule, saveSchedule, WeekSchedule } from "@/lib/schedule";
 import { seedIfEmpty } from "@/lib/seed";
@@ -16,18 +16,55 @@ const tabs: { id: Tab; label: string; icon: typeof CalendarDays }[] = [
   { id: "setup", label: "Setup", icon: Settings },
 ];
 
+const tabOrder: Tab[] = ["tomorrow", "week", "setup"];
+
+const swipeVariants = {
+  enter: (direction: number) => ({
+    x: direction > 0 ? 250 : -250,
+    opacity: 0,
+  }),
+  center: {
+    x: 0,
+    opacity: 1,
+  },
+  exit: (direction: number) => ({
+    x: direction < 0 ? 250 : -250,
+    opacity: 0,
+  }),
+};
+
 export default function Index() {
   const [schedule, setSchedule] = useState<WeekSchedule>(() => {
     seedIfEmpty();
     return loadSchedule();
   });
   const [activeTab, setActiveTab] = useState<Tab>("tomorrow");
+  const [direction, setDirection] = useState(0);
 
   const handleSave = useCallback((updated: WeekSchedule) => {
     saveSchedule(updated);
     setSchedule(updated);
+    setDirection(-1);
     setActiveTab("tomorrow");
   }, []);
+
+  function switchTab(newTab: Tab) {
+    const oldIndex = tabOrder.indexOf(activeTab);
+    const newIndex = tabOrder.indexOf(newTab);
+    setDirection(newIndex > oldIndex ? 1 : -1);
+    setActiveTab(newTab);
+  }
+
+  function handleDragEnd(_: any, info: PanInfo) {
+    const threshold = 50;
+    if (Math.abs(info.offset.x) < threshold) return;
+    const currentIndex = tabOrder.indexOf(activeTab);
+    if (info.offset.x < -threshold && currentIndex < tabOrder.length - 1) {
+      switchTab(tabOrder[currentIndex + 1]);
+    } else if (info.offset.x > threshold && currentIndex > 0) {
+      switchTab(tabOrder[currentIndex - 1]);
+    }
+  }
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -41,10 +78,26 @@ export default function Index() {
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-2xl flex-1 px-3 sm:px-4 py-4 sm:py-6 pb-2">
-        {activeTab === "tomorrow" && <TomorrowView schedule={schedule} />}
-        {activeTab === "week" && <WeekOverview schedule={schedule} />}
-        {activeTab === "setup" && <ScheduleSetup schedule={schedule} onSave={handleSave} />}
+      <main className="mx-auto w-full max-w-2xl flex-1 px-3 sm:px-4 py-4 sm:py-6 pb-2 overflow-hidden">
+        <AnimatePresence mode="wait" custom={direction}>
+          <motion.div
+            key={activeTab}
+            custom={direction}
+            variants={swipeVariants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            transition={{ type: "tween", duration: 0.25 }}
+            drag="x"
+            dragConstraints={{ left: 0, right: 0 }}
+            dragElastic={0.2}
+            onDragEnd={handleDragEnd}
+          >
+            {activeTab === "tomorrow" && <TomorrowView schedule={schedule} />}
+            {activeTab === "week" && <WeekOverview schedule={schedule} />}
+            {activeTab === "setup" && <ScheduleSetup schedule={schedule} onSave={handleSave} />}
+          </motion.div>
+        </AnimatePresence>
       </main>
 
       <InstallBanner />
@@ -57,7 +110,7 @@ export default function Index() {
             return (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
+                onClick={() => switchTab(tab.id)}
                 className={`relative flex flex-1 flex-col items-center gap-1 py-3 text-xs font-medium transition-colors ${
                   active ? "text-primary" : "text-muted-foreground hover:text-foreground"
                 }`}
