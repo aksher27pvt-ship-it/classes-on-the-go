@@ -57,13 +57,7 @@ export function ScheduleSetup({ schedule, onSave }: ScheduleSetupProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="font-display text-xl sm:text-2xl font-bold">Setup Schedule</h2>
-        <Button onClick={handleSave} size="sm" className="gap-2">
-          <Save className="h-4 w-4" />
-          Save
-        </Button>
-      </div>
+      <h2 className="font-display text-xl sm:text-2xl font-bold">Setup Schedule</h2>
 
       <div className="space-y-2">
         {draft.map((day, dayIndex) => (
@@ -151,10 +145,16 @@ export function ScheduleSetup({ schedule, onSave }: ScheduleSetupProps) {
                       </motion.div>
                     ))}
 
-                    <Button variant="outline" size="sm" className="gap-1.5 w-full" onClick={() => addClass(dayIndex)}>
-                      <Plus className="h-3.5 w-3.5" />
-                      Add Class
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button variant="outline" size="sm" className="gap-1.5 flex-1" onClick={() => addClass(dayIndex)}>
+                        <Plus className="h-3.5 w-3.5" />
+                        Add Class
+                      </Button>
+                      <Button size="sm" className="gap-1.5" onClick={handleSave}>
+                        <Save className="h-3.5 w-3.5" />
+                        Save
+                      </Button>
+                    </div>
                   </div>
                 </motion.div>
               )}
