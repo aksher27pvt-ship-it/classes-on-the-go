@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { WeekSchedule, formatTime, getTodayDay } from "@/lib/schedule";
 import { LayoutGrid } from "lucide-react";
+import { getSubjectColor } from "@/lib/colors";
 
 interface WeekOverviewProps {
   schedule: WeekSchedule;
@@ -44,14 +45,17 @@ export function WeekOverview({ schedule }: WeekOverviewProps) {
                 <p className="text-sm text-muted-foreground italic">No classes</p>
               ) : (
                 <ul className="space-y-1.5">
-                  {sorted.map((cls) => (
-                    <li key={cls.id} className="text-sm">
-                      <span className="font-medium">{cls.subject}</span>
-                      <span className="ml-1.5 text-muted-foreground">
-                        {formatTime(cls.startTime)}
-                      </span>
-                    </li>
-                  ))}
+                   {sorted.map((cls) => {
+                     const colors = getSubjectColor(cls.subject);
+                     return (
+                       <li key={cls.id} className="text-sm">
+                         <span className={`font-medium ${colors.text}`}>{cls.subject}</span>
+                         <span className="ml-1.5 text-muted-foreground">
+                           {formatTime(cls.startTime)}
+                         </span>
+                       </li>
+                     );
+                   })}
                 </ul>
               )}
             </motion.div>
